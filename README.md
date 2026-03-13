@@ -1,6 +1,6 @@
 # Watermark Remover
 
-Fork of [https://github.com/santifer/watermark-remover](santifier/watermark-remover):
+Fork of [santifier/watermark-remover](https://github.com/santifer/watermark-remover):
 
 - Translated documentation to English via AI
 - Slimmed down repository
