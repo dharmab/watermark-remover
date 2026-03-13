@@ -1,4 +1,4 @@
-"""Detección de marcas de agua usando YOLOv8."""
+"""Watermark detection using YOLOv8."""
 
 from pathlib import Path
 from PIL import Image, ImageDraw
@@ -6,35 +6,35 @@ import numpy as np
 
 
 class WatermarkDetector:
-    """Detector de marcas de agua usando YOLOv8."""
+    """Watermark detector using YOLOv8."""
 
     def __init__(self, model_path: str | None = None, confidence: float = 0.5):
         """
-        Inicializa el detector.
+        Initialize the detector.
 
         Args:
-            model_path: Ruta al modelo YOLO. Si es None, usa yolov8n.pt
-            confidence: Umbral de confianza mínimo (0.0 - 1.0)
+            model_path: Path to the YOLO model. If None, uses yolov8n.pt
+            confidence: Minimum confidence threshold (0.0 - 1.0)
         """
         from ultralytics import YOLO
 
         if model_path and Path(model_path).exists():
             self.model = YOLO(model_path)
         else:
-            # Usar modelo base YOLOv8 nano
+            # Use base YOLOv8 nano model
             self.model = YOLO("yolov8n.pt")
 
         self.confidence = confidence
 
     def detect(self, image: Image.Image) -> list[dict]:
         """
-        Detecta objetos en la imagen que podrían ser marcas de agua.
+        Detect objects in the image that could be watermarks.
 
         Args:
-            image: Imagen PIL en modo RGB
+            image: PIL Image in RGB mode
 
         Returns:
-            Lista de detecciones con bbox [x1, y1, x2, y2] y confianza
+            List of detections with bbox [x1, y1, x2, y2] and confidence
         """
         results = self.model(image, conf=self.confidence, verbose=False)
         detections = []
@@ -56,22 +56,22 @@ class WatermarkDetector:
         padding: int = 10,
     ) -> Image.Image:
         """
-        Crea máscara binaria a partir de las detecciones.
+        Create a binary mask from the detections.
 
         Args:
-            image_size: Tamaño (width, height) de la imagen
-            detections: Lista de detecciones con bbox
-            padding: Píxeles extra alrededor de cada detección
+            image_size: Image size (width, height)
+            detections: List of detections with bbox
+            padding: Extra pixels around each detection
 
         Returns:
-            Máscara PIL en modo L (blanco = área a eliminar)
+            PIL mask in L mode (white = area to remove)
         """
         mask = Image.new("L", image_size, 0)
         draw = ImageDraw.Draw(mask)
 
         for det in detections:
             x1, y1, x2, y2 = det["bbox"]
-            # Aplicar padding
+            # Apply padding
             x1 = max(0, x1 - padding)
             y1 = max(0, y1 - padding)
             x2 = min(image_size[0], x2 + padding)
@@ -89,17 +89,17 @@ def create_corner_mask(
     padding: int = 10,
 ) -> Image.Image:
     """
-    Crea una máscara en una esquina de la imagen (fallback cuando YOLO no detecta).
+    Create a mask in a corner of the image (fallback when YOLO doesn't detect).
 
     Args:
-        image_size: Tamaño (width, height) de la imagen
-        corner: Esquina a enmascarar ("bottom-right", "bottom-left", "top-right", "top-left")
-        width_ratio: Proporción del ancho de la imagen para la máscara
-        height_ratio: Proporción del alto de la imagen para la máscara
-        padding: Píxeles extra de margen
+        image_size: Image size (width, height)
+        corner: Corner to mask ("bottom-right", "bottom-left", "top-right", "top-left")
+        width_ratio: Ratio of image width for the mask
+        height_ratio: Ratio of image height for the mask
+        padding: Extra margin pixels
 
     Returns:
-        Máscara PIL en modo L
+        PIL mask in L mode
     """
     width, height = image_size
     mask_width = int(width * width_ratio)
@@ -129,7 +129,7 @@ def create_corner_mask(
         x2 = mask_width + padding
         y2 = mask_height + padding
     else:
-        raise ValueError(f"Esquina no válida: {corner}")
+        raise ValueError(f"Invalid corner: {corner}")
 
     draw.rectangle([x1, y1, x2, y2], fill=255)
     return mask

@@ -1,4 +1,4 @@
-"""Punto de entrada para python -m watermark_remover."""
+"""Entry point for python -m watermark_remover."""
 
 from .cli import main
 

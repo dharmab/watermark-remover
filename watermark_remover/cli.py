@@ -1,4 +1,4 @@
-"""CLI para eliminar marcas de agua de imágenes."""
+"""CLI for removing watermarks from images."""
 
 import click
 from pathlib import Path
@@ -13,64 +13,64 @@ from .inpainter import WatermarkInpainter
 @click.option(
     "-o", "--output",
     type=click.Path(),
-    help="Ruta de salida. Por defecto: <nombre>_clean.<ext>"
+    help="Output path. Default: <name>_clean.<ext>"
 )
 @click.option(
     "--confidence",
     default=0.5,
     type=float,
-    help="Umbral de confianza YOLO (0.0-1.0)"
+    help="YOLO confidence threshold (0.0-1.0)"
 )
 @click.option(
     "--padding",
     default=10,
     type=int,
-    help="Píxeles extra alrededor de la marca detectada"
+    help="Extra pixels around the detected watermark"
 )
 @click.option(
     "--fallback-corner",
     is_flag=True,
     default=True,
-    help="Usar esquina inferior derecha si YOLO no detecta nada (por defecto: activado)"
+    help="Use bottom-right corner if YOLO detects nothing (default: enabled)"
 )
 @click.option(
     "--no-fallback",
     is_flag=True,
-    help="Desactivar fallback de esquina"
+    help="Disable corner fallback"
 )
 @click.option(
     "--corner",
     type=click.Choice(["bottom-right", "bottom-left", "top-right", "top-left"]),
     default="bottom-right",
-    help="Esquina para fallback"
+    help="Corner for fallback"
 )
 @click.option(
     "--corner-width",
     default=0.12,
     type=float,
-    help="Proporción del ancho para la máscara de esquina (0.0-1.0)"
+    help="Width ratio for the corner mask (0.0-1.0)"
 )
 @click.option(
     "--corner-height",
     default=0.08,
     type=float,
-    help="Proporción del alto para la máscara de esquina (0.0-1.0)"
+    help="Height ratio for the corner mask (0.0-1.0)"
 )
 @click.option(
     "-v", "--verbose",
     is_flag=True,
-    help="Mostrar información detallada"
+    help="Show detailed information"
 )
 @click.option(
     "--force-corner",
     is_flag=True,
-    help="Usar siempre la máscara de esquina, sin detección YOLO"
+    help="Always use the corner mask, skip YOLO detection"
 )
 @click.option(
     "--method",
     type=click.Choice(["lama", "opencv"]),
     default="lama",
-    help="Método de inpainting: lama (mejor calidad) u opencv (más rápido)"
+    help="Inpainting method: lama (better quality) or opencv (faster)"
 )
 def main(
     input_path: str,
@@ -87,47 +87,47 @@ def main(
     method: str,
 ):
     """
-    Elimina marcas de agua de imágenes usando IA.
+    Remove watermarks from images using AI.
 
-    Usa YOLO para detectar la marca y LaMa para eliminarla.
-    Si YOLO no detecta nada, usa la esquina inferior derecha por defecto.
+    Uses YOLO to detect the watermark and LaMa to remove it.
+    If YOLO detects nothing, defaults to the bottom-right corner.
 
-    Ejemplos:
+    Examples:
 
-        watermark-remover imagen.png
+        watermark-remover image.png
 
-        watermark-remover imagen.png -o limpia.png --verbose
+        watermark-remover image.png -o clean.png --verbose
 
-        watermark-remover imagen.png --force-corner --corner-width 0.15
+        watermark-remover image.png --force-corner --corner-width 0.15
     """
     input_path = Path(input_path)
 
-    # Determinar ruta de salida
+    # Determine output path
     if output:
         output_path = Path(output)
     else:
         output_path = input_path.parent / f"{input_path.stem}_clean{input_path.suffix}"
 
     if verbose:
-        click.echo(f"Procesando: {input_path}")
+        click.echo(f"Processing: {input_path}")
 
-    # Cargar imagen
+    # Load image
     try:
         image = Image.open(input_path).convert("RGB")
     except Exception as e:
-        click.echo(f"Error al cargar imagen: {e}", err=True)
+        click.echo(f"Error loading image: {e}", err=True)
         raise SystemExit(1)
 
     if verbose:
-        click.echo(f"Tamaño: {image.size[0]}x{image.size[1]}")
+        click.echo(f"Size: {image.size[0]}x{image.size[1]}")
 
     mask = None
     use_fallback = no_fallback is False and fallback_corner
 
-    # Detectar marca de agua con YOLO (si no se fuerza esquina)
+    # Detect watermark with YOLO (unless corner is forced)
     if not force_corner:
         if verbose:
-            click.echo("Detectando marcas de agua con YOLO...")
+            click.echo("Detecting watermarks with YOLO...")
 
         try:
             detector = WatermarkDetector(confidence=confidence)
@@ -135,24 +135,24 @@ def main(
 
             if detections:
                 if verbose:
-                    click.echo(f"Detectadas {len(detections)} marca(s) de agua")
+                    click.echo(f"Detected {len(detections)} watermark(s)")
                     for i, det in enumerate(detections):
-                        click.echo(f"  {i+1}. Confianza: {det['confidence']:.2f}, BBox: {det['bbox']}")
+                        click.echo(f"  {i+1}. Confidence: {det['confidence']:.2f}, BBox: {det['bbox']}")
 
                 mask = detector.create_mask(image.size, detections, padding)
             elif verbose:
-                click.echo("YOLO no detectó marcas de agua")
+                click.echo("YOLO did not detect any watermarks")
 
         except Exception as e:
             if verbose:
-                click.echo(f"Error en detección YOLO: {e}")
-            # Continuar con fallback si está habilitado
+                click.echo(f"YOLO detection error: {e}")
+            # Continue with fallback if enabled
 
-    # Fallback: usar esquina
+    # Fallback: use corner
     if mask is None:
         if force_corner or use_fallback:
             if verbose:
-                click.echo(f"Usando máscara de esquina: {corner}")
+                click.echo(f"Using corner mask: {corner}")
 
             mask = create_corner_mask(
                 image.size,
@@ -162,26 +162,26 @@ def main(
                 padding=padding,
             )
         else:
-            click.echo("No se detectaron marcas de agua y fallback está desactivado", err=True)
+            click.echo("No watermarks detected and fallback is disabled", err=True)
             raise SystemExit(1)
 
     # Inpainting
     if verbose:
-        click.echo(f"Aplicando inpainting con {method.upper()}...")
+        click.echo(f"Applying inpainting with {method.upper()}...")
 
     try:
         inpainter = WatermarkInpainter(method=method)
         result = inpainter.inpaint(image, mask)
     except Exception as e:
-        click.echo(f"Error en inpainting: {e}", err=True)
+        click.echo(f"Inpainting error: {e}", err=True)
         raise SystemExit(1)
 
-    # Guardar resultado
+    # Save result
     try:
         result.save(output_path)
-        click.echo(f"Guardado: {output_path}")
+        click.echo(f"Saved: {output_path}")
     except Exception as e:
-        click.echo(f"Error al guardar: {e}", err=True)
+        click.echo(f"Error saving: {e}", err=True)
         raise SystemExit(1)
 
 

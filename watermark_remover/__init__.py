@@ -1,4 +1,4 @@
-"""Watermark Remover - Elimina marcas de agua usando YOLO + LaMa."""
+"""Watermark Remover - Remove watermarks using YOLO + LaMa."""
 
 __version__ = "0.1.0"
 

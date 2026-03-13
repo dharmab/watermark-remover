@@ -36,3 +36,9 @@ Thumbs.db
 
 # Mypy
 .mypy_cache/
+
+# Images
+*.png
+*.jpg
+*.jpeg
+*.webp

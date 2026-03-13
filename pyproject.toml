@@ -1,0 +1,23 @@
+[project]
+name = "watermark-remover"
+version = "0.1.0"
+description = "Remove watermarks from images using YOLO + LaMa"
+authors = [{ name = "santifer-dev" }]
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "ultralytics>=8.0.0",
+    "simple-lama-inpainting>=0.1.0",
+    "Pillow>=9.0.0",
+    "opencv-python>=4.7.0",
+    "numpy>=1.24.0",
+    "click>=8.0.0",
+]
+
+[project.scripts]
+watermark-remover = "watermark_remover.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
