@@ -2,7 +2,6 @@
 
 from pathlib import Path
 from PIL import Image, ImageDraw
-import numpy as np
 
 
 class WatermarkDetector:

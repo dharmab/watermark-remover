@@ -100,20 +100,20 @@ def main(
 
         watermark-remover image.png --force-corner --corner-width 0.15
     """
-    input_path = Path(input_path)
+    path = Path(input_path)
 
     # Determine output path
     if output:
         output_path = Path(output)
     else:
-        output_path = input_path.parent / f"{input_path.stem}_clean{input_path.suffix}"
+        output_path = path.parent / f"{path.stem}_clean{path.suffix}"
 
     if verbose:
-        click.echo(f"Processing: {input_path}")
+        click.echo(f"Processing: {path}")
 
     # Load image
     try:
-        image = Image.open(input_path).convert("RGB")
+        image = Image.open(path).convert("RGB")
     except Exception as e:
         click.echo(f"Error loading image: {e}", err=True)
         raise SystemExit(1)
