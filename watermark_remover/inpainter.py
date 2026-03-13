@@ -82,11 +82,20 @@ class WatermarkInpainter:
         # Binarize mask (>0.5 = area to remove)
         mask_tensor = (mask_tensor > 0.5).float()
 
+        # Pad to multiple of 8 (required by LaMa's encoder/decoder architecture)
+        _, _, h, w = img_tensor.shape
+        pad_h = (8 - h % 8) % 8
+        pad_w = (8 - w % 8) % 8
+        if pad_h > 0 or pad_w > 0:
+            img_tensor = torch.nn.functional.pad(img_tensor, (0, pad_w, 0, pad_h), mode="reflect")
+            mask_tensor = torch.nn.functional.pad(mask_tensor, (0, pad_w, 0, pad_h), mode="reflect")
+
         # Inference
         with torch.no_grad():
             result = model(img_tensor, mask_tensor)
 
-        # Postprocess
+        # Crop back to original size and postprocess
+        result = result[:, :, :h, :w]
         result_np = result[0].permute(1, 2, 0).cpu().numpy()
         result_np = np.clip(result_np * 255, 0, 255).astype(np.uint8)
 
